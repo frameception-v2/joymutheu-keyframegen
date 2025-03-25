@@ -3,7 +3,7 @@ import { PROJECT_TITLE, PROJECT_DESCRIPTION } from "~/lib/constants";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-export const alt = PROJECT_TITLE;
+export const alt = "Keys.lol Farcaster Frame - EVM & Solana Key Generator";
 export const contentType = "image/png";
 
 // Function to load font with error handling

@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
+import { ethers } from "ethers";
+import { Keypair } from "@solana/web3.js";
+import bs58 from "bs58";
 import sdk, {
   AddFrame,
   SignIn as SignInCore,
   type Context,
 } from "@farcaster/frame-sdk";
+import { Button } from "~/components/ui/button";
 import {
   Card,
   CardHeader,
@@ -22,17 +26,99 @@ import { createStore } from "mipd";
 import { Label } from "~/components/ui/label";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-function ExampleCard() {
+function KeyGenerator() {
+  const [evmKey, setEvmKey] = useState<{private: string; address: string} | null>(null);
+  const [solKey, setSolKey] = useState<{private: string; address: string} | null>(null);
+  const [keysVisible, setKeysVisible] = useState(false);
+
+  const generateEVMKey = useCallback(() => {
+    const privateKey = crypto.randomBytes(32).toString('hex');
+    const wallet = new ethers.Wallet(privateKey);
+    setEvmKey({
+      private: privateKey,
+      address: wallet.address
+    });
+  }, []);
+
+  const generateSolanaKey = useCallback(() => {
+    const keypair = Keypair.generate();
+    setSolKey({
+      private: bs58.encode(keypair.secretKey),
+      address: keypair.publicKey.toString()
+    });
+  }, []);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome to the Frame Template</CardTitle>
-        <CardDescription>
-          This is an example card that you can customize or remove
+        <CardTitle className="text-red-500">⚠️ Temporary Key Generator</CardTitle>
+        <CardDescription className="text-red-300">
+          Generated keys should NEVER hold significant funds! 
+          This is for testing purposes only.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Label>Place content in a Card here.</Label>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Button onClick={generateEVMKey} variant="outline">
+            Generate EVM Key
+          </Button>
+          {evmKey && (
+            <div className="text-xs break-words space-y-1">
+              <div className="font-mono">Address: {evmKey.address}</div>
+              <div className="flex gap-2 items-center">
+                <span className="font-mono">Private: {keysVisible ? evmKey.private : '*'.repeat(64)}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setKeysVisible(!keysVisible)}
+                >
+                  {keysVisible ? 'Hide' : 'Show'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigator.clipboard.writeText(evmKey.private)}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button onClick={generateSolanaKey} variant="outline">
+            Generate Solana Key
+          </Button>
+          {solKey && (
+            <div className="text-xs break-words space-y-1">
+              <div className="font-mono">Address: {solKey.address}</div>
+              <div className="flex gap-2 items-center">
+                <span className="font-mono">Private: {keysVisible ? solKey.private : '*'.repeat(44)}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setKeysVisible(!keysVisible)}
+                >
+                  {keysVisible ? 'Hide' : 'Show'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigator.clipboard.writeText(solKey.private)}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 text-center text-xs text-red-400">
+          🔒 Keys generated client-side - Not stored anywhere!
+          <br />
+          📜 Open source: github.com/yourusername/keys-lol-frame
+        </div>
       </CardContent>
     </Card>
   );
@@ -137,7 +223,7 @@ export default function Frame() {
       }}
     >
       <div className="w-[300px] mx-auto py-2 px-2">
-        <ExampleCard />
+        <KeyGenerator />
       </div>
     </div>
   );
